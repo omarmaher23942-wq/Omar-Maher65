@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chat</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: radial-gradient(circle at top,#0f2027,#0b0b2f);
+  color:white;
+}
+
+/* Glass container */
+
+.chat-container{
+  width:95%;
+  max-width:900px;
+  height:90vh;
+  backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.05);
+  border-radius:25px;
+  box-shadow:0 0 40px rgba(0,0,0,0.6);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* header */
+
+.chat-header{
+  padding:20px;
+  font-size:20px;
+  font-weight:600;
+  background:linear-gradient(90deg,#00f5ff,#0084ff);
+  text-align:center;
+}
+
+/* messages */
+
+.chat-messages{
+  flex:1;
+  padding:20px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+/* message */
+
+.message{
+  padding:12px 18px;
+  border-radius:20px;
+  max-width:70%;
+  animation:fadeIn 0.4s ease;
+}
+
+.user{
+  align-self:flex-end;
+  background:linear-gradient(90deg,#00f5ff,#0084ff);
+}
+
+.bot{
+  align-self:flex-start;
+  background:rgba(255,255,255,0.1);
+}
+
+/* input */
+
+.chat-input{
+  display:flex;
+  padding:15px;
+  gap:10px;
+  background:rgba(0,0,0,0.3);
+}
+
+.chat-input input{
+  flex:1;
+  padding:15px;
+  border:none;
+  border-radius:15px;
+  outline:none;
+  background:rgba(255,255,255,0.1);
+  color:white;
+}
+
+.chat-input button{
+  padding:15px 25px;
+  border:none;
+  border-radius:15px;
+  background:linear-gradient(90deg,#00f5ff,#0084ff);
+  color:white;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.chat-input button:hover{
+  transform:scale(1.05);
+}
+
+/* typing effect */
+
+.typing{
+  width:60px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.typing span{
+  width:8px;
+  height:8px;
+  background:white;
+  border-radius:50%;
+  animation:blink 1.4s infinite;
+}
+
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+
+/* animations */
+
+@keyframes blink{
+  0%,80%,100%{opacity:0}
+  40%{opacity:1}
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+</style>
+</head>
+<body>
+
+<div class="chat-container">
+
+<div class="chat-header">⚡ AI Assistant</div>
+
+<div class="chat-messages" id="messages"></div>
+
+<div class="chat-input">
+  <input type="text" id="input" placeholder="Type your message...">
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+</div>
+
+<script>
+
+const webhookURL = "https://omarmaherabdelaziz.app.n8n.cloud/webhook/54f1f9e5-4ba0-4318-a7d6-8c7399f9034e";
+
+function addMessage(text,type){
+  const msg = document.createElement("div");
+  msg.className = "message " + type;
+  msg.innerText = text;
+  document.getElementById("messages").appendChild(msg);
+}
+
+function showTyping(){
+  const typing = document.createElement("div");
+  typing.className="message bot";
+  typing.id="typing";
+  typing.innerHTML=`<div class="typing"><span></span><span></span><span></span></div>`;
+  document.getElementById("messages").appendChild(typing);
+}
+
+function removeTyping(){
+  document.getElementById("typing")?.remove();
+}
+
+async function sendMessage(){
+
+  const input = document.getElementById("input");
+  const text = input.value;
+  if(!text) return;
+
+  addMessage(text,"user");
+  input.value="";
+
+  showTyping();
+
+  const res = await fetch(webhookURL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:text})
+  });
+
+  const data = await res.json();
+
+  removeTyping();
+  addMessage(data.output || "No response","bot");
+}
+
+</script>
+
+</body>
+</html>
